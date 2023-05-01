@@ -1,8 +1,8 @@
 import asyncio
 import json
 from typing import List
-from fastapi import HTTPException
 from title import Title, TitleBasic
+from utils import CustomException, response
 
 
 async def call_database(id: int = None, res_time: float = 0.1):
@@ -15,11 +15,14 @@ async def call_database(id: int = None, res_time: float = 0.1):
         data = [TitleBasic(**title) for title in titles_data]
         return data
 
-def find_title_by_id(id: int, data: List):
+
+def find_title_by_id(id: int, data: List) -> Title:
     # finds the title with matching id
     title = next((Title(**title)
                   for title in data if int(title['id']) == id), None)
     if title:
         return title
     else:
-        raise HTTPException(status_code=404, detail=f'Title with id: {id} does not exist.')
+        res = response(
+            success=False, message=f'Title with id: {id} not found.')
+        raise CustomException(code=404, response=res)

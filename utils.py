@@ -34,7 +34,7 @@ def sort_data(data: List, sort_keys: List) -> List:
     return sorted_titles
 
 
-def get_paginated_data(data: List, page: int, limit: int) -> List:
+def get_paginated_data(data: List, page: int, limit: int) -> List[TitleBasic]:
     if limit:
         start_index = (page - 1) * limit
         end_index = start_index + limit
@@ -42,3 +42,14 @@ def get_paginated_data(data: List, page: int, limit: int) -> List:
     else:
         paginated_titles = data
     return paginated_titles
+
+class CustomException(Exception):
+    def __init__(self, response: dict, code: int):
+        self.response = response
+        self.code = code
+
+def response(success: bool = True, message: str = '', data: dict = {}) -> dict:
+    res = {'success': success, 'data': data}
+    if message:
+        res['message'] = message
+    return res

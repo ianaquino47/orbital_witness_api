@@ -1,8 +1,9 @@
 from typing import List, Union
-from fastapi import FastAPI, Path, Query
+from fastapi import FastAPI, Path, Query, Request
+from fastapi.responses import JSONResponse
 from database import call_database
 from title import Title, TitleBasic
-from utils import filter_by_title_class, get_paginated_data, get_sort_keys, sort_data
+from utils import CustomException, filter_by_title_class, get_paginated_data, get_sort_keys, response, sort_data
 
 app = FastAPI()
 
@@ -14,7 +15,7 @@ async def get_all_titles(
     _order: str = Query('asc'),
     _page: int = Query(1, ge=1),
     _limit: int = Query(None, ge=1, le=100),
-) -> List[TitleBasic]:
+) -> dict[str, Union[str, str, List[TitleBasic]]]:
     try:
         # Mock database call
         titles_data = await call_database()
@@ -35,16 +36,24 @@ async def get_all_titles(
         # Apply pagination
         paginated_titles = get_paginated_data(sorted_titles, _page, _limit)
 
-        return paginated_titles
+        return response(success=True, data=paginated_titles)
     except:
         raise
 
 
 @app.get("/api/titles/{id}")
-async def get_title(id: int = Path(ge=0)) -> Title:
+async def get_title(id: int = Path(ge=0)) -> dict[str, Union[str, Title]]:
     try:
         # Mock database call
         title = await call_database(id)
-        return title
+        return response(data=title)
     except:
         raise
+
+
+@app.exception_handler(CustomException)
+async def unicorn_exception_handler(request: Request, exc: CustomException):
+    return JSONResponse(
+        status_code=exc.code,
+        content=exc.response
+    )
