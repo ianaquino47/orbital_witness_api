@@ -2,7 +2,7 @@ from typing import List
 from fastapi import FastAPI, Query
 from database import call_database
 from title import TitleBasic
-from utils import filter_by_title_class, get_sort_keys, sort_data
+from utils import filter_by_title_class, get_paginated_data, get_sort_keys, sort_data
 
 app = FastAPI()
 
@@ -11,6 +11,8 @@ async def get_all_titles(
     title_class: str = Query(None),
     _sort: str = Query(None),
     _order: str = Query('asc'),
+    _page: int = Query(1, ge=1),
+    _limit: int = Query(None, ge=1, le=100),
 ) -> List[TitleBasic]:
     try:
         # Mock database call
@@ -28,6 +30,10 @@ async def get_all_titles(
 
         # Sort the list using multiple keys (default = asc)
         sorted_titles = sort_data(filtered_titles, sort_keys)
-        return filtered_titles
+
+        # Apply pagination
+        paginated_titles = get_paginated_data(sorted_titles, _page, _limit)
+        
+        return paginated_titles
     except:
         raise
