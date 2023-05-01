@@ -1,10 +1,11 @@
-from typing import List
-from fastapi import FastAPI, Query
+from typing import List, Union
+from fastapi import FastAPI, Path, Query
 from database import call_database
-from title import TitleBasic
+from title import Title, TitleBasic
 from utils import filter_by_title_class, get_paginated_data, get_sort_keys, sort_data
 
 app = FastAPI()
+
 
 @app.get("/api/titles")
 async def get_all_titles(
@@ -33,7 +34,17 @@ async def get_all_titles(
 
         # Apply pagination
         paginated_titles = get_paginated_data(sorted_titles, _page, _limit)
-        
+
         return paginated_titles
+    except:
+        raise
+
+
+@app.get("/api/titles/{id}")
+async def get_title(id: int = Path(ge=0)) -> Title:
+    try:
+        # Mock database call
+        title = await call_database(id)
+        return title
     except:
         raise
